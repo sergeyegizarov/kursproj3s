@@ -44,7 +44,6 @@ SUITE(UserInterfaceSuite) {
         CHECK_EQUAL(ui.getDbFile(), "vcalc.conf");
     }
 }
-
 struct LoggerFixture {
     std::string testLogFile = "/tmp/test_vcalc_basic.log";
     
@@ -76,11 +75,17 @@ SUITE(LoggerSuite) {
         std::string content = readFileContent();
         CHECK(content.find("[CRITICAL]") != std::string::npos);
     }
+	TEST_FIXTURE(LoggerFixture, LogWarning_Success) {
+        Logger logger(testLogFile);
+        logger.log("Disk space low", Severity::WARNING);
+        std::string content = readFileContent();
+        CHECK(content.find("[WARNING]") != std::string::npos);
+    }
 
     TEST_FIXTURE(LoggerFixture, InvalidDirectory_FailsGracefully) {
         Logger logger("/nonexistent/deeply/nested/dir/test.log");
         logger.log("This should not crash", Severity::INFO);
-        CHECK(true); // Программа не должна аварийно завершиться
+        CHECK(true);
     }
 }
 
@@ -154,6 +159,17 @@ SUITE(AuthenticatorSuite) {
         
         CHECK(!auth.verifyHash(salt16, "wrong", hash));
     }
+	TEST_FIXTURE(AuthenticatorFixture, FormatSalt16_MaxValue) {
+        std::string formatted = auth.formatSalt16(UINT64_MAX);
+        CHECK_EQUAL(formatted.length(), 16);
+        CHECK_EQUAL(formatted, "FFFFFFFFFFFFFFFF");
+    }
+	TEST_FIXTURE(AuthenticatorFixture, VerifyHash_EmptyPassword) {
+        uint64_t salt = auth.generateSalt();
+        std::string salt16 = auth.formatSalt16(salt);
+        std::string hash = auth.computeMD5Hash(salt16, "");
+        CHECK(!auth.verifyHash(salt16, "notempty", hash));
+    }
 }
 
 SUITE(VectorProcessorSuite) {
@@ -172,6 +188,10 @@ SUITE(VectorProcessorSuite) {
     TEST(Average_EmptyVector) {
         std::vector<uint16_t> vec = {};
         CHECK_EQUAL(vp.average(vec), 0);
+    }
+	TEST(Average_SingleElement) {
+        std::vector<uint16_t> vec = {42};
+        CHECK_EQUAL(vp.average(vec), 42);
     }
 }
 
