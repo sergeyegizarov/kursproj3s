@@ -3,16 +3,14 @@
 #include <cstdlib>
 #include <iostream>
 UserInterface::UserInterface()
-    : dbFile("/home/25pi108@ibst.psu/vcalc.conf")
-    , logFile("/home/25pi108@ibst.psu/vcalc.log")
+    : dbFile("vcalc.conf")
+    , logFile("vcalc.log")
     , port(33333)
 {
 }
 void UserInterface::readArgs(int argc, char** argv)
 {
-    if(argc == 1) {
-        showHelp();
-    }
+    
     for(int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
         if(arg == "-h" || arg == "--help") {

@@ -1,0 +1,36 @@
+
+CXX = g++
+CXXFLAGS = -std=c++17 -Wall -Wextra
+LDFLAGS = -lcrypto
+UTPP_LIBS = -lUnitTest++ -lpthread
+
+SRC_DIR = src
+OBJ_DIR = obj/tests
+TEST_DIR = mod_tests
+TARGET = tests
+
+SERVER_SRCS = $(filter-out $(SRC_DIR)/main.cpp, $(wildcard $(SRC_DIR)/*.cpp))
+SERVER_OBJS = $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SERVER_SRCS))
+
+TEST_SRC = $(TEST_DIR)/tests.cpp
+
+.PHONY: all clean test
+
+all: $(TARGET)
+
+$(TARGET): $(SERVER_OBJS) $(TEST_SRC) | $(OBJ_DIR)
+	@echo "=== Building Tests ==="
+	$(CXX) $(CXXFLAGS) -I$(SRC_DIR) -o $@ $(SERVER_OBJS) $(TEST_SRC) $(LDFLAGS) $(UTPP_LIBS)
+	@echo "=== Running Tests ==="
+	./$(TARGET)
+
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp | $(OBJ_DIR)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+$(OBJ_DIR):
+	mkdir -p $(OBJ_DIR)
+
+clean:
+	rm -rf $(OBJ_DIR) $(TARGET)
+
+test: all
